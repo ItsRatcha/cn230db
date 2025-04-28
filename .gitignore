@@ -176,6 +176,7 @@ cython_debug/
 # db files:
 *.db
 *.sqlite3
+*.db-journal
 
 # html files:
 *.html
