@@ -50,8 +50,9 @@ def fetch_api_data(url):
         time.sleep(REQUEST_DELAY)
         return response.json()
     except requests.exceptions.Timeout:
-        print(f"Timeout error fetching {url}")
-        return None
+        print(f"Timeout error fetching {url}. Retrying in 5 seconds...")
+        time.sleep(5)  # Wait 5 seconds before retrying
+        return fetch_api_data(url)  # Retry the request
     except requests.exceptions.RequestException as e:
         print(f"Error fetching {url}: {e}")
         return None
@@ -210,9 +211,10 @@ def populate_database(conn, cursor):
     print("\n--- Starting Database Population/Update ---")
     pokemon_added_count = 0
     pokemon_failed_count = 0
-    pokemon_skipped_existing = 0 # Count how many we skip due to already existing
+    pokemon_skipped_existing = 0  # Count how many we skip due to already existing
 
     for i in range(1, MAX_POKEMON_ID + 1):
+        print(f"Processing Pokemon ID {i}/{MAX_POKEMON_ID}... ({MAX_POKEMON_ID - i} remaining)")
 
         # Optional: More granular check - skip if *this specific ID* already exists
         # cursor.execute(f"SELECT 1 FROM {TABLE_NAME} WHERE id = ?", (i,))
@@ -251,11 +253,11 @@ def populate_database(conn, cursor):
             conn.commit()
 
     print("\n--- Population Loop Complete ---")
-    conn.commit() # Final commit
+    conn.commit()  # Final commit
     print(f"Finished population attempt.")
-    # print(f"Skipped existing Pokemon: {pokemon_skipped_existing}") # Uncomment if using the granular check
-    print(f"Successfully added/updated in this run: {pokemon_added_count}") # This count reflects successful INSERT/REPLACE operations
+    print(f"Successfully added/updated in this run: {pokemon_added_count}")  # This count reflects successful INSERT/REPLACE operations
     print(f"Failed to process/insert in this run: {pokemon_failed_count}")
+    print(f"Total processed: {pokemon_added_count + pokemon_failed_count}/{MAX_POKEMON_ID}")
 
 
 # --- Main Execution ---
